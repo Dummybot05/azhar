@@ -1,166 +1,320 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Azhar Game</title>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Azhar Game</title>
 <style>
-body {
-    margin:0;
-    padding:0;
-}
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-#box {
-    width:100%;
-    height:100vh;
-    background-color:#f1f1f1;
-    position:relative;
-    overflow:hidden;
-    background-size: cover;
-}
-#land {
-    width:100%;
-    height:16vh;
-    background-color:brown;
-    position:absolute;
-    bottom:0;
-}
-#soil {
-    width:100%;
-    height:2vh;
-    background-color:green;
-    position:absolute;
-    bottom:16vh;
-}
-#up, #up2 {
-    width:10%;
-    height:35vh;
-    background-color:#FF5733;
-    position:absolute;
-    right:0%;
-}
-#down, #down2{
-    width:10%;
-    height:35vh;
-    background-color:#FF5733;
-    position:absolute;
-    bottom:0;
-    right:0%;
-}
-#up2, #down2 {
-    right:70%;
-}
-img {
-    width:100px;
-    position:absolute;
-}
-#hh {
-    position:absolute;
-    top:40vh;
-    text-align:center;
-    width:100%;
-    font-size:50px;
-    font-weight:800;
-    display:none;
-    color: #fff;
-}
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  50% { transform: translateX(2px); }
-  75% { transform: translateX(-2px); }
-  100% { transform: translateX(0); }
-}
+    body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        background-color: #1a1a1a; /* Dark background outside the game */
+        font-family: 'Press Start 2P', cursive;
+        touch-action: none; /* Prevents zooming on mobile taps */
+    }
 
+    #game-container {
+        width: 100%;
+        max-width: 450px; /* Keeps it looking like a mobile game on desktop */
+        height: 100vh;
+        max-height: 800px;
+        background: linear-gradient(to bottom, #70c5ce 0%, #a2e0e5 100%);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    /* Ground & Soil */
+    #land-container {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 18vh;
+        z-index: 10;
+    }
+    #soil {
+        width: 100%;
+        height: 4vh;
+        background: repeating-linear-gradient(45deg, #73bf2e, #73bf2e 10px, #64a627 10px, #64a627 20px);
+        border-top: 4px solid #558c22;
+        border-bottom: 4px solid #45731b;
+    }
+    #land {
+        width: 100%;
+        height: 14vh;
+        background-color: #ded895;
+    }
+
+    /* Pipes */
+    .pipe {
+        position: absolute;
+        width: 60px;
+        background: linear-gradient(to right, #73bf2e, #9ce659, #73bf2e);
+        border: 3px solid #558c22;
+        z-index: 5;
+    }
+    .pipe-up {
+        top: 0;
+        border-top: none;
+        border-bottom: 8px solid #558c22;
+    }
+    .pipe-down {
+        bottom: 18vh; /* Sits right on top of the soil */
+        border-bottom: none;
+        border-top: 8px solid #558c22;
+    }
+
+    /* Bird (using CSS shapes as a fallback, but applies to your image if it loads) */
+    #obj {
+    width: 40px; /* You can adjust this to fit your image */
+    height: 40px; /* You can adjust this to fit your image */
+    position: absolute;
+    left: 20%;
+    z-index: 8;
+    transition: transform 0.1s ease;
+}
+    /* Bird Eye */
+    #obj::after {
+        content: '';
+        position: absolute;
+        right: 8px;
+        top: 4px;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        border: 2px solid #333;
+    }
+    /* Bird Beak */
+    #obj::before {
+        content: '';
+        position: absolute;
+        right: -8px;
+        top: 12px;
+        width: 12px;
+        height: 8px;
+        background: #e74c3c;
+        border-radius: 10px;
+        border: 2px solid #333;
+    }
+
+    /* UI Overlays */
+    #score-board {
+        position: absolute;
+        top: 10vh;
+        width: 100%;
+        text-align: center;
+        font-size: 40px;
+        color: white;
+        -webkit-text-stroke: 2px #333;
+        z-index: 15;
+    }
+
+    #game-over-screen {
+        position: absolute;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 20;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-shadow: 2px 2px 0 #000;
+    }
+
+    #game-over-screen h1 {
+        font-size: 30px;
+        color: #ff5733;
+        margin-bottom: 10px;
+    }
+
+    #restart-btn {
+        margin-top: 20px;
+        padding: 15px 25px;
+        font-family: inherit;
+        font-size: 16px;
+        background-color: #f4d03f;
+        border: 3px solid #333;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #333;
+        transition: transform 0.1s;
+    }
+    #restart-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 #333;
+    }
 </style>
 </head>
 <body>
-<div id="box">      
- <div id="up"></div>
- <div id="down"></div>
- <div id="up2"></div>
- <div id="down2"></div>
- <div id="land"></div>
- <div id="soil"></div>
- <img id="obj" src="image.png" />
- <div id="hh">GameOver</div>
+
+<div id="game-container">
+    <div id="score-board">0</div>
+    
+    <div class="pipe pipe-up" id="up1"></div>
+    <div class="pipe pipe-down" id="down1"></div>
+    <div class="pipe pipe-up" id="up2"></div>
+    <div class="pipe pipe-down" id="down2"></div>
+
+<img id="obj" src="image.png" alt="player" />
+    <div id="land-container">
+        <div id="soil"></div>
+        <div id="land"></div>
+    </div>
+
+    <div id="game-over-screen">
+        <h1>GAME OVER</h1>
+        <p>Score: <span id="final-score">0</span></p>
+        <button id="restart-btn" onclick="resetGame()">PLAY AGAIN</button>
+    </div>
 </div>
+
 <script>
-let gameRunning = true;
-var e = new Audio("audio.aac");
-document.getElementById("box").onclick = function() { 
-   e.currentTime = 0;
-   e.play();
-}
-var z = 0;
-var y = 55;
+    // Audio setup (with error handling so it doesn't crash if audio.aac is missing)
+    var flapSound = new Audio("audio.aac");
+    
+    // Game State
+    let gameRunning = false;
+    let score = 0;
+    let gameLoop;
+    
+    // Physics & Positioning
+    const bird = document.getElementById('obj');
+    let birdTop = window.innerHeight / 2;
+    let velocity = 0;
+    const gravity = 0.4;
+    const flapPower = -7;
+    const birdLeft = 20; // 20% from left
+    
+    // Pipe logic
+    const gapSize = 25; // Gap between top and bottom pipe (in vh)
+    let pipes = [
+        { x: 100, topHeight: 30, passed: false, elUp: document.getElementById('up1'), elDown: document.getElementById('down1') },
+        { x: 160, topHeight: 45, passed: false, elUp: document.getElementById('up2'), elDown: document.getElementById('down2') }
+    ];
 
-const ran = () => {
-    return Math.floor(Math.random() * 60);
-}
-
-function ggg() {
-let k = ran();
-let l = ran();
-if (z == 100) {
-    z = -12;
-    document.getElementById("up").style.height = k+"vh";
-    document.getElementById("down").style.height = 100-k-30+"vh";
-}
-if (y == 100) {
-    y = -12;
-    document.getElementById("up2").style.height = l+"vh";
-    document.getElementById("down2").style.height = 100-l-30+"vh";
-}
-document.getElementById("up").style.right = z+"%";
-document.getElementById("down").style.right = z+"%";
-document.getElementById("up2").style.right = y+"%";
-document.getElementById("down2").style.right = y+"%";
-z++;
-y++;
-if (!gameRunning) {
-    document.getElementById("hh").style.display = "block";
-    clearInterval(ss);
-}
-}
-var ss = setInterval(ggg, 60);
-
-const bird = document.getElementById('obj');
-
-let gravity = 0.3; // Adjust gravity value for bird's falling speed
-let velocity = 0;
-let birdTop = 200; // Initial position of the bird
-
-function flap() {
-    if (!gameRunning) return;
-    velocity = -6; // Adjust flap power
-}
-
-function moveBird() {
-    velocity += gravity;
-    birdTop += velocity;
-    bird.style.top = birdTop + 'px';
-}
-
-function checkCollisions() {
-    const birdRect = bird.getBoundingClientRect();
-    if (birdTop <= 0 || birdTop >= window.innerHeight - bird.offsetHeight) {
-        endGame();
+    function flap() {
+        if (!gameRunning) return;
+        velocity = flapPower;
+        
+        // Tilt bird up
+        bird.style.transform = 'rotate(-20deg)';
+        
+        // Play sound if possible
+        flapSound.currentTime = 0;
+        flapSound.play().catch(e => {}); 
     }
-}
 
-function endGame() {
-    gameRunning = false;
-}
+    function moveBird() {
+        velocity += gravity;
+        birdTop += velocity;
+        bird.style.top = birdTop + 'px';
 
-document.addEventListener('click', flap);
+        // Tilt bird down if falling
+        if (velocity > 3) {
+            bird.style.transform = 'rotate(20deg)';
+        }
+    }
 
-setInterval(() => {
-    if (!gameRunning) return;
-    moveBird();
-    checkCollisions();
-}, 20);
+    function movePipes() {
+        pipes.forEach((pipe, index) => {
+            pipe.x -= 0.8; // Speed of pipes
 
+            // Reset pipe when it goes off screen
+            if (pipe.x < -15) {
+                pipe.x = 100; // Send back to right side
+                pipe.topHeight = Math.floor(Math.random() * 40) + 15; // Random height 15vh - 55vh
+                pipe.passed = false;
+            }
+
+            // Apply visual updates
+            pipe.elUp.style.left = pipe.x + '%';
+            pipe.elDown.style.left = pipe.x + '%';
+            pipe.elUp.style.height = pipe.topHeight + 'vh';
+            pipe.elDown.style.height = (100 - pipe.topHeight - gapSize - 18) + 'vh'; // 18 is ground height
+
+            // Score Logic
+            if (pipe.x < birdLeft && !pipe.passed) {
+                score++;
+                document.getElementById('score-board').innerText = score;
+                pipe.passed = true;
+            }
+        });
+    }
+
+    function checkCollisions() {
+        const birdRect = bird.getBoundingClientRect();
+        
+        // Floor / Ceiling collision
+        const landRect = document.getElementById('land-container').getBoundingClientRect();
+        if (birdRect.top <= 0 || birdRect.bottom >= landRect.top) {
+            endGame();
+        }
+
+        // Pipe collision
+        pipes.forEach(pipe => {
+            const upRect = pipe.elUp.getBoundingClientRect();
+            const downRect = pipe.elDown.getBoundingClientRect();
+
+            if (
+                (birdRect.right > upRect.left && birdRect.left < upRect.right && birdRect.top < upRect.bottom) ||
+                (birdRect.right > downRect.left && birdRect.left < downRect.right && birdRect.bottom > downRect.top)
+            ) {
+                endGame();
+            }
+        });
+    }
+
+    function endGame() {
+        gameRunning = false;
+        clearInterval(gameLoop);
+        document.getElementById('game-over-screen').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+    }
+
+    function resetGame() {
+        // Reset state
+        birdTop = window.innerHeight / 2;
+        velocity = 0;
+        score = 0;
+        document.getElementById('score-board').innerText = score;
+        
+        // Reset pipes
+        pipes[0].x = 100;
+        pipes[0].passed = false;
+        pipes[1].x = 160;
+        pipes[1].passed = false;
+
+        document.getElementById('game-over-screen').style.display = 'none';
+        bird.style.transform = 'rotate(0deg)';
+        
+        gameRunning = true;
+        gameLoop = setInterval(updateFrame, 20);
+    }
+
+    function updateFrame() {
+        if (!gameRunning) return;
+        moveBird();
+        movePipes();
+        checkCollisions();
+    }
+
+    // Input handlers
+    document.getElementById("game-container").addEventListener('mousedown', flap);
+    document.getElementById("game-container").addEventListener('touchstart', flap);
+    
+    // Handle spacebar
+    document.addEventListener('keydown', (e) => {
+        if (e.code === "Space") flap();
+    });
+
+    // Start initial game loop
+    resetGame();
 </script> 
 </body>
 </html>
