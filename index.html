@@ -12,14 +12,14 @@
         padding: 0;
         display: flex;
         justify-content: center;
-        background-color: #1a1a1a; /* Dark background outside the game */
+        background-color: #1a1a1a; 
         font-family: 'Press Start 2P', cursive;
-        touch-action: none; /* Prevents zooming on mobile taps */
+        touch-action: none; 
     }
 
     #game-container {
         width: 100%;
-        max-width: 450px; /* Keeps it looking like a mobile game on desktop */
+        max-width: 450px; 
         height: 100vh;
         max-height: 800px;
         background: linear-gradient(to bottom, #70c5ce 0%, #a2e0e5 100%);
@@ -63,39 +63,45 @@
         border-bottom: 8px solid #558c22;
     }
     .pipe-down {
-        bottom: 18vh; /* Sits right on top of the soil */
+        bottom: 18vh; 
         border-bottom: none;
         border-top: 8px solid #558c22;
     }
 
-    /* Bird (using CSS shapes as a fallback, but applies to your image if it loads) */
+    /* Bird UI Fixed - Switched to a div so pseudo-elements work */
     #obj {
-    width: 40px; /* You can adjust this to fit your image */
-    height: 40px; /* You can adjust this to fit your image */
-    position: absolute;
-    left: 20%;
-    z-index: 8;
-    transition: transform 0.1s ease;
-}
+        width: 35px; 
+        height: 35px; 
+        background-color: #f1c40f; /* Yellow fallback color */
+        border-radius: 50%;
+        position: absolute;
+        left: 20%;
+        z-index: 8;
+        transition: transform 0.1s ease;
+        /* If you want to use your image instead, uncomment below: */
+        /* background-image: url('image.png'); background-size: cover; */
+    }
+    
     /* Bird Eye */
     #obj::after {
         content: '';
         position: absolute;
         right: 8px;
-        top: 4px;
+        top: 6px;
         width: 6px;
         height: 6px;
         background: white;
         border-radius: 50%;
         border: 2px solid #333;
     }
+    
     /* Bird Beak */
     #obj::before {
         content: '';
         position: absolute;
-        right: -8px;
-        top: 12px;
-        width: 12px;
+        right: -10px;
+        top: 14px;
+        width: 14px;
         height: 8px;
         background: #e74c3c;
         border-radius: 10px;
@@ -161,7 +167,9 @@
     <div class="pipe pipe-up" id="up2"></div>
     <div class="pipe pipe-down" id="down2"></div>
 
-<img id="obj" src="image.png" alt="player" />
+    <!-- Changed from img to div for valid CSS shapes -->
+    <div id="obj"></div>
+    
     <div id="land-container">
         <div id="soil"></div>
         <div id="land"></div>
@@ -170,29 +178,26 @@
     <div id="game-over-screen">
         <h1>GAME OVER</h1>
         <p>Score: <span id="final-score">0</span></p>
-        <button id="restart-btn" onclick="resetGame()">PLAY AGAIN</button>
+        <button id="restart-btn" onclick="resetGame(event)">PLAY AGAIN</button>
     </div>
 </div>
 
 <script>
-    // Audio setup (with error handling so it doesn't crash if audio.aac is missing)
     var flapSound = new Audio("audio.aac");
     
-    // Game State
     let gameRunning = false;
     let score = 0;
     let gameLoop;
     
-    // Physics & Positioning
     const bird = document.getElementById('obj');
-    let birdTop = window.innerHeight / 2;
+    const gameContainer = document.getElementById('game-container');
+    let birdTop = 0; // Calculated on reset
     let velocity = 0;
     const gravity = 0.4;
     const flapPower = -7;
-    const birdLeft = 20; // 20% from left
+    const birdLeft = 20; 
     
-    // Pipe logic
-    const gapSize = 25; // Gap between top and bottom pipe (in vh)
+    const gapSize = 25; 
     let pipes = [
         { x: 100, topHeight: 30, passed: false, elUp: document.getElementById('up1'), elDown: document.getElementById('down1') },
         { x: 160, topHeight: 45, passed: false, elUp: document.getElementById('up2'), elDown: document.getElementById('down2') }
@@ -202,10 +207,8 @@
         if (!gameRunning) return;
         velocity = flapPower;
         
-        // Tilt bird up
         bird.style.transform = 'rotate(-20deg)';
         
-        // Play sound if possible
         flapSound.currentTime = 0;
         flapSound.play().catch(e => {}); 
     }
@@ -215,30 +218,26 @@
         birdTop += velocity;
         bird.style.top = birdTop + 'px';
 
-        // Tilt bird down if falling
         if (velocity > 3) {
             bird.style.transform = 'rotate(20deg)';
         }
     }
 
     function movePipes() {
-        pipes.forEach((pipe, index) => {
-            pipe.x -= 0.8; // Speed of pipes
+        pipes.forEach((pipe) => {
+            pipe.x -= 0.8; 
 
-            // Reset pipe when it goes off screen
             if (pipe.x < -15) {
-                pipe.x = 100; // Send back to right side
-                pipe.topHeight = Math.floor(Math.random() * 40) + 15; // Random height 15vh - 55vh
+                pipe.x = 100; 
+                pipe.topHeight = Math.floor(Math.random() * 40) + 15; 
                 pipe.passed = false;
             }
 
-            // Apply visual updates
             pipe.elUp.style.left = pipe.x + '%';
             pipe.elDown.style.left = pipe.x + '%';
             pipe.elUp.style.height = pipe.topHeight + 'vh';
-            pipe.elDown.style.height = (100 - pipe.topHeight - gapSize - 18) + 'vh'; // 18 is ground height
+            pipe.elDown.style.height = (100 - pipe.topHeight - gapSize - 18) + 'vh'; 
 
-            // Score Logic
             if (pipe.x < birdLeft && !pipe.passed) {
                 score++;
                 document.getElementById('score-board').innerText = score;
@@ -250,13 +249,13 @@
     function checkCollisions() {
         const birdRect = bird.getBoundingClientRect();
         
-        // Floor / Ceiling collision
         const landRect = document.getElementById('land-container').getBoundingClientRect();
-        if (birdRect.top <= 0 || birdRect.bottom >= landRect.top) {
+        const containerRect = gameContainer.getBoundingClientRect();
+        
+        if (birdRect.top <= containerRect.top || birdRect.bottom >= landRect.top) {
             endGame();
         }
 
-        // Pipe collision
         pipes.forEach(pipe => {
             const upRect = pipe.elUp.getBoundingClientRect();
             const downRect = pipe.elDown.getBoundingClientRect();
@@ -277,14 +276,15 @@
         document.getElementById('final-score').innerText = score;
     }
 
-    function resetGame() {
-        // Reset state
-        birdTop = window.innerHeight / 2;
+    function resetGame(e) {
+        if (e) e.stopPropagation(); // Prevents button click from triggering a flap
+
+        // Set bird height relative to container, not whole window
+        birdTop = gameContainer.clientHeight / 2;
         velocity = 0;
         score = 0;
         document.getElementById('score-board').innerText = score;
         
-        // Reset pipes
         pipes[0].x = 100;
         pipes[0].passed = false;
         pipes[1].x = 160;
@@ -292,6 +292,7 @@
 
         document.getElementById('game-over-screen').style.display = 'none';
         bird.style.transform = 'rotate(0deg)';
+        bird.style.top = birdTop + 'px'; // reset visually immediately
         
         gameRunning = true;
         gameLoop = setInterval(updateFrame, 20);
@@ -304,13 +305,18 @@
         checkCollisions();
     }
 
-    // Input handlers
-    document.getElementById("game-container").addEventListener('mousedown', flap);
-    document.getElementById("game-container").addEventListener('touchstart', flap);
+    // Consolidated pointer event (handles both mouse and touch cleanly without double-firing)
+    gameContainer.addEventListener('pointerdown', (e) => {
+        if (e.target.id === 'restart-btn') return; // Ignore if clicking reset
+        flap();
+    });
     
-    // Handle spacebar
+    // Prevent spacebar from scrolling page and trigger flap
     document.addEventListener('keydown', (e) => {
-        if (e.code === "Space") flap();
+        if (e.code === "Space") {
+            e.preventDefault(); 
+            flap();
+        }
     });
 
     // Start initial game loop
