@@ -49,7 +49,7 @@
         background-color: #ded895;
     }
 
-    /* Pipes */
+    /* Pipes Base */
     .pipe {
         position: absolute;
         width: 60px;
@@ -60,52 +60,45 @@
     .pipe-up {
         top: 0;
         border-top: none;
-        border-bottom: 8px solid #558c22;
+        border-bottom: none; /* Removed so cap fits flush */
     }
     .pipe-down {
         bottom: 18vh; 
         border-bottom: none;
-        border-top: 8px solid #558c22;
+        border-top: none; /* Removed so cap fits flush */
     }
 
-    /* Bird UI Fixed - Switched to a div so pseudo-elements work */
+    /* Pipe Caps (The wider ends) */
+    .pipe-up::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: -8px; /* Pulls cap left to overlap border */
+        width: 70px; /* Wider than the 60px pipe */
+        height: 25px;
+        background: linear-gradient(to right, #73bf2e, #9ce659, #73bf2e);
+        border: 3px solid #558c22;
+    }
+    .pipe-down::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -8px; /* Pulls cap left to overlap border */
+        width: 70px; /* Wider than the 60px pipe */
+        height: 25px;
+        background: linear-gradient(to right, #73bf2e, #9ce659, #73bf2e);
+        border: 3px solid #558c22;
+    }
+
+    /* Restored Image Bird */
     #obj {
-        width: 35px; 
-        height: 35px; 
-        background-color: #f1c40f; /* Yellow fallback color */
-        border-radius: 50%;
+        width: 40px; 
+        height: 40px; 
         position: absolute;
         left: 20%;
         z-index: 8;
         transition: transform 0.1s ease;
-        /* If you want to use your image instead, uncomment below: */
-        /* background-image: url('image.png'); background-size: cover; */
-    }
-    
-    /* Bird Eye */
-    #obj::after {
-        content: '';
-        position: absolute;
-        right: 8px;
-        top: 6px;
-        width: 6px;
-        height: 6px;
-        background: white;
-        border-radius: 50%;
-        border: 2px solid #333;
-    }
-    
-    /* Bird Beak */
-    #obj::before {
-        content: '';
-        position: absolute;
-        right: -10px;
-        top: 14px;
-        width: 14px;
-        height: 8px;
-        background: #e74c3c;
-        border-radius: 10px;
-        border: 2px solid #333;
+        object-fit: contain; /* Prevents stretching if image isn't perfectly square */
     }
 
     /* UI Overlays */
@@ -167,8 +160,8 @@
     <div class="pipe pipe-up" id="up2"></div>
     <div class="pipe pipe-down" id="down2"></div>
 
-    <!-- Changed from img to div for valid CSS shapes -->
-    <div id="obj"></div>
+    <!-- Restored your original image file -->
+    <img id="obj" src="image.png" alt="player" />
     
     <div id="land-container">
         <div id="soil"></div>
@@ -191,7 +184,7 @@
     
     const bird = document.getElementById('obj');
     const gameContainer = document.getElementById('game-container');
-    let birdTop = 0; // Calculated on reset
+    let birdTop = 0; 
     let velocity = 0;
     const gravity = 0.4;
     const flapPower = -7;
@@ -277,9 +270,8 @@
     }
 
     function resetGame(e) {
-        if (e) e.stopPropagation(); // Prevents button click from triggering a flap
+        if (e) e.stopPropagation(); 
 
-        // Set bird height relative to container, not whole window
         birdTop = gameContainer.clientHeight / 2;
         velocity = 0;
         score = 0;
@@ -292,7 +284,7 @@
 
         document.getElementById('game-over-screen').style.display = 'none';
         bird.style.transform = 'rotate(0deg)';
-        bird.style.top = birdTop + 'px'; // reset visually immediately
+        bird.style.top = birdTop + 'px'; 
         
         gameRunning = true;
         gameLoop = setInterval(updateFrame, 20);
@@ -305,13 +297,11 @@
         checkCollisions();
     }
 
-    // Consolidated pointer event (handles both mouse and touch cleanly without double-firing)
     gameContainer.addEventListener('pointerdown', (e) => {
-        if (e.target.id === 'restart-btn') return; // Ignore if clicking reset
+        if (e.target.id === 'restart-btn') return; 
         flap();
     });
     
-    // Prevent spacebar from scrolling page and trigger flap
     document.addEventListener('keydown', (e) => {
         if (e.code === "Space") {
             e.preventDefault(); 
@@ -319,7 +309,6 @@
         }
     });
 
-    // Start initial game loop
     resetGame();
 </script> 
 </body>
